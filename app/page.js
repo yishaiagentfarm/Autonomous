@@ -1,4 +1,4 @@
-const DEPLOY_LABEL = "v2 — auto-deploy from main verified";
+const DEPLOY_LABEL = "deploy #1 — live on GitHub Pages (Autonomous)";
 
 export default function Home() {
   return (
