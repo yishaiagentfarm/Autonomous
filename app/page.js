@@ -1,4 +1,4 @@
-const DEPLOY_LABEL = "v1 — initial deploy";
+const DEPLOY_LABEL = "v2 — auto-deploy from main verified";
 
 export default function Home() {
   return (
@@ -15,7 +15,7 @@ export default function Home() {
     >
       <div style={{ maxWidth: 640 }}>
         <h1 style={{ fontSize: "2.2rem", marginBottom: "0.5rem" }}>
-          Deploy pipeline is live ✅
+          Deploy pipeline is live — and auto-updating ✅
         </h1>
         <p style={{ fontSize: "1.1rem", lineHeight: 1.5, opacity: 0.9 }}>
           This is the company&apos;s technical-foundation skeleton: a GitHub repo,
