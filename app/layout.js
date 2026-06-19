@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "BuildZero — Foundation",
-  description: "Technical foundation skeleton: repo, hosting, and CI/CD proof.",
+  title: "Free ATS Resume Scan — Founding offer for laid-off tech pros",
+  description:
+    "See the real ATS match-rate Greenhouse and Workday give your resume and the exact keywords you're missing for each job. Free, runs in your browser.",
 };
 
 export default function RootLayout({ children }) {
