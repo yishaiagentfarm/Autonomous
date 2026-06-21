@@ -30,6 +30,17 @@ function track(event, data) {
   }
 }
 
+// Read the ?ref query param so conversion events attribute per channel.
+// Returns "" when no ?ref is present (criteria: empty/absent in that case).
+function getRef() {
+  if (typeof window === "undefined") return "";
+  try {
+    return new URLSearchParams(window.location.search).get("ref") || "";
+  } catch (e) {
+    return "";
+  }
+}
+
 const C = {
   bg: "#0b1020",
   card: "#111935",
@@ -66,7 +77,7 @@ export default function OfferPage() {
 
   function handleScan() {
     const r = scanResume(resume, jd);
-    track("scan_run");
+    track("scan_run", { ref: getRef() });
     if (r.error) {
       setScanError(r.error);
       setResult(null);
@@ -79,7 +90,7 @@ export default function OfferPage() {
   // The click-to-pay CTA: fires the conversion-intent event the go/no-go gate
   // counts, then reveals the email field.
   function handleReserve() {
-    track("clicks_to_pay");
+    track("clicks_to_pay", { ref: getRef() });
     setShowEmail(true);
     setTimeout(() => emailRef.current && emailRef.current.focus(), 300);
   }
@@ -105,7 +116,7 @@ export default function OfferPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success !== "false") {
-        track("email_captured");
+        track("email_captured", { ref: getRef() });
         setStatus("done");
         setMessage("You're in. Founding rate reserved — watch your inbox.");
         setEmail("");
