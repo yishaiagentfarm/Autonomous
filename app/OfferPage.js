@@ -2,18 +2,26 @@
 
 import { useRef, useState } from "react";
 import Script from "next/script";
-import { scanResume } from "./atsScan";
 
 // ---------------------------------------------------------------------------
-// PRE-SELL OFFER PAGE — implements approved spec 4110ef3a verbatim.
-// Built on the proven instrumentation scaffold (task 08d37766):
-//   Analytics:  Umami Cloud  -> https://cloud.umami.is/script.js
-//               website id    4a57c88b-c0e8-4f79-b1ef-699af84f47ab
-//               custom events: scan_run, clicks_to_pay, email_captured
-//               (Umami auto-pageview = unique visitors -> conversion %
-//                = clicks_to_pay / unique visitors stays computable)
-//   Email:      FormSubmit.co AJAX -> /ajax/7aa38b6421bfc605ccc0e64aa6a7edb2
-// 100% client-side. No backend, no API, Stripe NOT live ($0 fake-door).
+// PRE-SELL OFFER PAGE — company-tailored + async-email reframe (task 71f1fdab).
+// Founder direction (1ad73aa5) / CEO decision (knowledge 1da97568):
+//   Positioning = resume TAILORED TO THE SPECIFIC TARGET COMPANY (we research
+//   the company + role, then rewrite the resume to fit) — NOT generic ATS
+//   keyword-matching. Delivery is async/email, framed as quiet reassurance,
+//   never sold as the feature. Show the research depth, don't just claim it.
+//
+//   Copy-only pre-sell. No backend; first orders fulfilled concierge/manual.
+//   Auto-submit of applications = Phase 2 (NOT built here).
+//
+//   Analytics:  Umami Cloud -> https://cloud.umami.is/script.js
+//               website id   4a57c88b-c0e8-4f79-b1ef-699af84f47ab
+//               custom events: clicks_to_pay (CTA intent), email_captured
+//               (successful form submit). Both carry the ?ref property so
+//               each channel's conversion attributes (PE PR #1).
+//   Capture:    FormSubmit.co AJAX -> /ajax/7aa38b6421bfc605ccc0e64aa6a7edb2
+//               captures email + resume + target company + target role + job
+//               post (optional). 100% client-side, Stripe NOT live ($0).
 // ---------------------------------------------------------------------------
 
 const UMAMI_WEBSITE_ID = "4a57c88b-c0e8-4f79-b1ef-699af84f47ab";
@@ -31,7 +39,7 @@ function track(event, data) {
 }
 
 // Read the ?ref query param so conversion events attribute per channel.
-// Returns "" when no ?ref is present (criteria: empty/absent in that case).
+// Returns "" when no ?ref is present.
 function getRef() {
   if (typeof window === "undefined") return "";
   try {
@@ -55,49 +63,35 @@ const C = {
 };
 
 export default function OfferPage() {
-  const scanRef = useRef(null);
-
-  // Free-scan state
-  const [resume, setResume] = useState("");
-  const [jd, setJd] = useState("");
-  const [result, setResult] = useState(null);
-  const [scanError, setScanError] = useState("");
-
-  // Reserve / email-capture state
-  const [showEmail, setShowEmail] = useState(false);
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | sending | done | error
-  const [message, setMessage] = useState("");
+  const formRef = useRef(null);
   const emailRef = useRef(null);
 
-  function scrollToScan() {
-    if (scanRef.current)
-      scanRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  // Capture-form state
+  const [email, setEmail] = useState("");
+  const [resume, setResume] = useState("");
+  const [company, setCompany] = useState("");
+  const [role, setRole] = useState("");
+  const [jobPost, setJobPost] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | done | error
+  const [message, setMessage] = useState("");
 
-  function handleScan() {
-    const r = scanResume(resume, jd);
-    track("scan_run", { ref: getRef() });
-    if (r.error) {
-      setScanError(r.error);
-      setResult(null);
-      return;
-    }
-    setScanError("");
-    setResult(r);
-  }
-
-  // The click-to-pay CTA: fires the conversion-intent event the go/no-go gate
-  // counts, then reveals the email field.
-  function handleReserve() {
+  // Hero/price CTA: fires the conversion-intent event the go/no-go gate counts,
+  // then scrolls to the capture form and focuses the first field.
+  function handleCtaClick() {
     track("clicks_to_pay", { ref: getRef() });
-    setShowEmail(true);
-    setTimeout(() => emailRef.current && emailRef.current.focus(), 300);
+    if (formRef.current)
+      formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => emailRef.current && emailRef.current.focus(), 400);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email || status === "sending") return;
+    if (status === "sending") return;
+    if (!email || !resume || !company || !role) {
+      setStatus("error");
+      setMessage("Please fill in your email, resume, target company, and role.");
+      return;
+    }
     setStatus("sending");
     setMessage("");
     try {
@@ -109,7 +103,12 @@ export default function OfferPage() {
         },
         body: JSON.stringify({
           email,
-          _subject: "New founding-spot reservation (ATS scan pre-sell)",
+          target_company: company,
+          target_role: role,
+          resume,
+          job_post: jobPost,
+          ref: getRef(),
+          _subject: "New tailored-resume request (company-tailored pre-sell)",
           _template: "table",
           _captcha: "false",
         }),
@@ -118,8 +117,14 @@ export default function OfferPage() {
       if (res.ok && data.success !== "false") {
         track("email_captured", { ref: getRef() });
         setStatus("done");
-        setMessage("You're in. Founding rate reserved — watch your inbox.");
+        setMessage(
+          "Got it. We're on it — watch your inbox for your tailored resume."
+        );
         setEmail("");
+        setResume("");
+        setCompany("");
+        setRole("");
+        setJobPost("");
       } else {
         setStatus("error");
         setMessage(
@@ -132,22 +137,19 @@ export default function OfferPage() {
     }
   }
 
-  const bullets = [
+  const cards = [
     {
-      h: "Real ATS match score, not vibes",
-      p: "See the parse match-rate and the exact keywords this job wants that your resume is missing. (ChatGPT can't simulate the parser; it just gives prose.)",
+      h: "We research the company, not just the keywords",
+      p: "We read the real job post, the company's recent news, and their engineering/product blog to find what this team actually prioritizes — then rewrite your bullets to speak to it. Not the generic ATS keywords ChatGPT guesses at.",
     },
     {
-      h: "Bulk per-application tailoring",
-      p: "Paste your resume once, generate a targeted version for 10, 30, 50 roles, and track which version you sent where. (ChatGPT makes you re-paste and re-prompt every single time.)",
+      h: "See the difference",
+      p: null,
+      beforeAfter: true,
     },
     {
-      h: "Tuned for tech roles",
-      p: "Knows K8s = Kubernetes, the stack keywords recruiters filter on, and seniority signals — without robotic keyword-stuffing that gets you flagged.",
-    },
-    {
-      h: "Founding rate locked for life: $19/mo (or $29/quarter)",
-      p: "Under half the price of Jobscan ($50/mo), built for people between paychecks.",
+      h: "Submit once. We do the work.",
+      p: "No dashboard to wrestle, no re-prompting. Send your resume and target role, and we research, rewrite, and email your tailored resume back — fast.",
     },
   ];
 
@@ -168,7 +170,7 @@ export default function OfferPage() {
         }}
       >
         <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          {/* ---------------- SECTION 1 — HERO ---------------- */}
+          {/* ---------------- HERO ---------------- */}
           <section style={{ padding: "56px 0 8px", textAlign: "center" }}>
             <span
               style={{
@@ -183,7 +185,7 @@ export default function OfferPage() {
                 color: C.dim,
               }}
             >
-              For laid-off tech professionals applying at volume
+              For when one role really matters — done right, not 50 done generically
             </span>
 
             <h1
@@ -194,8 +196,8 @@ export default function OfferPage() {
                 fontWeight: 800,
               }}
             >
-              Laid off and applying to 40 jobs a week? The ATS is rejecting most
-              of them before a human ever looks.
+              Get your resume rewritten to fit the exact company you&apos;re
+              applying to.
             </h1>
 
             <p
@@ -207,18 +209,18 @@ export default function OfferPage() {
                 maxWidth: 560,
               }}
             >
-              Built for laid-off software, product, and data folks applying at
-              volume. See the exact match-rate Greenhouse and Workday give your
-              resume — and the keywords you&apos;re missing for <em>each</em> job
-              — then tailor every application in minutes.
+              Tell us the role and the company. We read their job post, recent
+              news, and engineering/product blog — then rewrite your resume to
+              match what that team actually cares about. It lands in your inbox,
+              fast.
             </p>
 
-            <button onClick={scrollToScan} style={btnPrimary}>
-              Run my free ATS scan ↓
+            <button onClick={handleCtaClick} style={btnPrimary}>
+              Tailor my resume →
             </button>
           </section>
 
-          {/* ---------------- BENEFIT BULLETS ---------------- */}
+          {/* ---------------- VALUE CARDS ---------------- */}
           <section
             style={{
               display: "grid",
@@ -227,7 +229,7 @@ export default function OfferPage() {
               margin: "36px 0 8px",
             }}
           >
-            {bullets.map((b, i) => (
+            {cards.map((b, i) => (
               <div
                 key={i}
                 style={{
@@ -242,24 +244,92 @@ export default function OfferPage() {
                   style={{
                     fontWeight: 700,
                     fontSize: "1.02rem",
-                    marginBottom: 4,
+                    marginBottom: 6,
                     color: C.sky,
                   }}
                 >
                   {b.h}
                 </div>
-                <div style={{ fontSize: "0.96rem", lineHeight: 1.5, color: C.dim }}>
-                  {b.p}
-                </div>
+                {b.p && (
+                  <div
+                    style={{ fontSize: "0.96rem", lineHeight: 1.5, color: C.dim }}
+                  >
+                    {b.p}
+                  </div>
+                )}
+                {b.beforeAfter && (
+                  <div style={{ display: "grid", gap: 10, marginTop: 4 }}>
+                    <div style={baCol}>
+                      <div style={baLabel}>Before</div>
+                      <div style={baText}>
+                        &ldquo;Built backend services in Go.&rdquo;
+                      </div>
+                    </div>
+                    <div style={{ ...baCol, borderColor: "rgba(167,243,208,0.4)" }}>
+                      <div style={{ ...baLabel, color: C.mint }}>
+                        After — targeting a fintech that emphasizes reliability
+                      </div>
+                      <div style={baText}>
+                        &ldquo;Re-architected the payment-ledger service in Go,
+                        cutting reconciliation errors 40% — matching
+                        [Company]&apos;s public push on payment reliability.&rdquo;
+                      </div>
+                    </div>
+                    <div style={{ fontSize: "0.88rem", color: C.dim }}>
+                      Specific, true to you, aimed at them.
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </section>
 
-          {/* ---------------- SECTION 2 — FREE ATS SCAN ---------------- */}
+          {/* ---------------- PRICE + CTA ---------------- */}
           <section
-            ref={scanRef}
             style={{
-              marginTop: 44,
+              marginTop: 24,
+              background: "linear-gradient(160deg, #15224a, #111935)",
+              border: `1px solid ${C.border}`,
+              borderRadius: 18,
+              padding: "26px 22px",
+              textAlign: "center",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "1.1rem",
+                fontWeight: 700,
+                margin: "0 0 6px",
+                color: C.sky,
+              }}
+            >
+              Founding rate $19/mo — locked for life.
+            </p>
+            <p
+              style={{
+                fontSize: "1.0rem",
+                lineHeight: 1.55,
+                margin: "0 0 20px",
+                color: C.dim,
+              }}
+            >
+              No charge today. Reserve your spot and we&apos;ll email your first
+              tailored resume.
+            </p>
+
+            <button
+              onClick={handleCtaClick}
+              style={{ ...btnPrimary, background: C.mint }}
+            >
+              Tailor my resume →
+            </button>
+          </section>
+
+          {/* ---------------- CAPTURE FORM ---------------- */}
+          <section
+            ref={formRef}
+            style={{
+              marginTop: 24,
               background: C.card,
               border: `1px solid ${C.border}`,
               borderRadius: 18,
@@ -273,226 +343,126 @@ export default function OfferPage() {
                 fontWeight: 800,
               }}
             >
-              Free ATS scan
+              Send us the role — we&apos;ll tailor your resume to it
             </h2>
             <p style={{ color: C.dim, margin: "0 0 20px", fontSize: "0.98rem" }}>
-              Paste your resume and one job description. Runs entirely in your
-              browser — nothing is uploaded.
+              Founding-member pre-launch. First tailored resumes are fulfilled by
+              our team. We&apos;ll email you back fast.
             </p>
 
-            <label style={label}>Paste your resume (plain text)</label>
-            <textarea
-              value={resume}
-              onChange={(e) => setResume(e.target.value)}
-              placeholder="Paste the full text of your resume…"
-              rows={6}
-              style={textarea}
-            />
+            <form onSubmit={handleSubmit}>
+              <label htmlFor="cap-email" style={label}>
+                Email
+              </label>
+              <input
+                id="cap-email"
+                ref={emailRef}
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+                style={input}
+              />
 
-            <label style={{ ...label, marginTop: 16 }}>
-              Paste the job description
-            </label>
-            <textarea
-              value={jd}
-              onChange={(e) => setJd(e.target.value)}
-              placeholder="Paste the full job posting…"
-              rows={6}
-              style={textarea}
-            />
+              <label htmlFor="cap-company" style={{ ...label, marginTop: 16 }}>
+                Target company
+              </label>
+              <input
+                id="cap-company"
+                type="text"
+                required
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="e.g. Stripe"
+                style={input}
+              />
 
-            <button
-              onClick={handleScan}
-              style={{ ...btnPrimary, width: "100%", maxWidth: "none", marginTop: 18 }}
-            >
-              Scan my resume
-            </button>
+              <label htmlFor="cap-role" style={{ ...label, marginTop: 16 }}>
+                Target role / job title
+              </label>
+              <input
+                id="cap-role"
+                type="text"
+                required
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                placeholder="e.g. Senior Backend Engineer"
+                style={input}
+              />
 
-            {scanError && (
-              <p style={{ color: C.amber, marginTop: 14, fontSize: "0.95rem" }}>
-                {scanError}
-              </p>
-            )}
+              <label htmlFor="cap-resume" style={{ ...label, marginTop: 16 }}>
+                Paste your resume
+              </label>
+              <textarea
+                id="cap-resume"
+                required
+                value={resume}
+                onChange={(e) => setResume(e.target.value)}
+                placeholder="Paste the full text of your resume…"
+                rows={6}
+                style={textarea}
+              />
 
-            {/* ---- RESULT PANEL ---- */}
-            {result && (
-              <div style={{ marginTop: 26 }}>
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "18px 0",
-                    borderTop: `1px solid ${C.border}`,
-                    borderBottom: `1px solid ${C.border}`,
-                  }}
-                >
-                  <div style={{ fontSize: "0.9rem", color: C.dim, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                    ATS match
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "3.4rem",
-                      fontWeight: 800,
-                      lineHeight: 1.05,
-                      color:
-                        result.score >= 70
-                          ? C.mint
-                          : result.score >= 45
-                          ? C.amber
-                          : C.red,
-                    }}
-                  >
-                    {result.score}%
-                  </div>
-                  <div style={{ fontSize: "0.9rem", color: C.dim }}>
-                    {result.matchedCount} of {result.totalKeywords} keywords this
-                    posting scans for are in your resume
-                  </div>
-                </div>
+              <label htmlFor="cap-jobpost" style={{ ...label, marginTop: 16 }}>
+                Job post URL or paste{" "}
+                <span style={{ fontWeight: 400, color: C.dim }}>
+                  (optional — helps us research faster)
+                </span>
+              </label>
+              <textarea
+                id="cap-jobpost"
+                value={jobPost}
+                onChange={(e) => setJobPost(e.target.value)}
+                placeholder="Link to the job posting, or paste it here…"
+                rows={3}
+                style={textarea}
+              />
 
-                {result.missing.length > 0 && (
-                  <div style={{ marginTop: 20 }}>
-                    <div style={resultHeading}>
-                      Keywords this job is scanning for that aren&apos;t in your
-                      resume:
-                    </div>
-                    {result.missing.map((m, i) => (
-                      <details key={i} style={missItem}>
-                        <summary style={missSummary}>
-                          <span style={{ fontWeight: 600 }}>{m.display}</span>
-                          {m.weight >= 2 && (
-                            <span style={emphTag}>emphasized {m.weight}×</span>
-                          )}
-                        </summary>
-                        {m.sentence ? (
-                          <p style={missDetail}>
-                            From the posting: &ldquo;{m.sentence}&rdquo;
-                          </p>
-                        ) : (
-                          <p style={missDetail}>Mentioned in the job description.</p>
-                        )}
-                      </details>
-                    ))}
-                  </div>
-                )}
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                style={{
+                  ...btnPrimary,
+                  width: "100%",
+                  maxWidth: "none",
+                  marginTop: 20,
+                  background: status === "sending" ? "#3a4a6b" : C.mint,
+                  cursor: status === "sending" ? "default" : "pointer",
+                }}
+              >
+                {status === "sending"
+                  ? "Sending…"
+                  : "Send me my tailored resume →"}
+              </button>
 
-                {result.covered.length > 0 && (
-                  <div style={{ marginTop: 18 }}>
-                    <div style={resultHeading}>Already covered:</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {result.covered.map((c, i) => (
-                        <span key={i} style={coveredTag}>
-                          ✓ {c.display}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+              {message && (
                 <p
+                  role="status"
                   style={{
-                    marginTop: 18,
-                    fontSize: "0.85rem",
-                    color: C.dim,
-                    lineHeight: 1.5,
-                    fontStyle: "italic",
+                    marginTop: 16,
+                    marginBottom: 0,
+                    fontSize: "0.97rem",
+                    fontWeight: 600,
+                    color: status === "error" ? C.red : C.mint,
                   }}
                 >
-                  This is a keyword-parse estimate — the same signal ATS like
-                  Greenhouse/Workday rank on. Nothing left your browser. The paid
-                  tool rewrites your bullets to close these gaps without
-                  keyword-stuffing.
+                  {message}
                 </p>
-              </div>
-            )}
+              )}
+            </form>
           </section>
 
-          {/* ---------------- SECTION 3 — PAID OFFER + CLICK-TO-PAY ---------- */}
-          <section
+          <p
             style={{
-              marginTop: 24,
-              background: "linear-gradient(160deg, #15224a, #111935)",
-              border: `1px solid ${C.border}`,
-              borderRadius: 18,
-              padding: "26px 22px",
               textAlign: "center",
+              fontSize: "0.8rem",
+              color: "rgba(230,233,242,0.45)",
+              marginTop: 30,
             }}
           >
-            <p
-              style={{
-                fontSize: "1.04rem",
-                lineHeight: 1.55,
-                margin: "0 0 6px",
-                color: C.ink,
-              }}
-            >
-              That&apos;s your free scan. The full tool (launching soon) rewrites
-              your bullets to close these gaps, bulk-tailors 30+ roles, and
-              exports ATS-safe formatting.
-            </p>
-            <p
-              style={{
-                fontSize: "1.1rem",
-                fontWeight: 700,
-                margin: "0 0 20px",
-                color: C.sky,
-              }}
-            >
-              Founding rate $19/mo or $29/quarter — locked for life.
-            </p>
-
-            <button onClick={handleReserve} style={{ ...btnPrimary, background: C.mint }}>
-              Reserve my founding spot — $19/mo →
-            </button>
-
-            {showEmail && (
-              <form onSubmit={handleSubmit} style={{ marginTop: 22, textAlign: "left" }}>
-                <label htmlFor="reserve-email" style={label}>
-                  Lock the founding rate — drop your email and we&apos;ll invite
-                  you the day we launch.
-                </label>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <input
-                    id="reserve-email"
-                    ref={emailRef}
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@email.com"
-                    style={emailInput}
-                  />
-                  <button
-                    type="submit"
-                    disabled={status === "sending"}
-                    style={{
-                      ...btnSubmit,
-                      background: status === "sending" ? "#3a4a6b" : C.mint,
-                      cursor: status === "sending" ? "default" : "pointer",
-                    }}
-                  >
-                    {status === "sending" ? "Reserving…" : "Reserve"}
-                  </button>
-                </div>
-                {message && (
-                  <p
-                    role="status"
-                    style={{
-                      marginTop: 14,
-                      marginBottom: 0,
-                      fontSize: "0.97rem",
-                      fontWeight: 600,
-                      color: status === "error" ? C.red : C.mint,
-                    }}
-                  >
-                    {message}
-                  </p>
-                )}
-              </form>
-            )}
-          </section>
-
-          <p style={{ textAlign: "center", fontSize: "0.8rem", color: "rgba(230,233,242,0.45)", marginTop: 30 }}>
-            Founding-member pre-launch. No charge today — reserve your rate and
-            we&apos;ll email you at launch.
+            Founding-member pre-launch. No charge today — send us your target
+            role and we&apos;ll email your first tailored resume.
           </p>
         </div>
       </main>
@@ -514,21 +484,22 @@ const btnPrimary = {
   width: "100%",
   maxWidth: 380,
 };
-const btnSubmit = {
-  flex: "0 0 auto",
-  padding: "13px 24px",
-  fontSize: "1rem",
-  fontWeight: 700,
-  color: "#0b1020",
-  border: "none",
-  borderRadius: 10,
-};
 const label = {
   display: "block",
   fontSize: "0.92rem",
   fontWeight: 600,
   marginBottom: 8,
   color: "#e6e9f2",
+};
+const input = {
+  width: "100%",
+  padding: "13px 14px",
+  fontSize: "1rem",
+  borderRadius: 10,
+  border: "1px solid #2a3358",
+  background: "#0b1020",
+  color: "#e6e9f2",
+  boxSizing: "border-box",
 };
 const textarea = {
   width: "100%",
@@ -543,57 +514,22 @@ const textarea = {
   fontFamily: "inherit",
   resize: "vertical",
 };
-const emailInput = {
-  flex: "1 1 220px",
-  minWidth: 0,
-  padding: "13px 14px",
-  fontSize: "1rem",
-  borderRadius: 10,
-  border: "1px solid #2a3358",
-  background: "#0b1020",
-  color: "#e6e9f2",
-  boxSizing: "border-box",
-};
-const resultHeading = {
-  fontSize: "0.95rem",
-  fontWeight: 700,
-  marginBottom: 10,
-  color: "#e6e9f2",
-};
-const missItem = {
+const baCol = {
   background: "#0b1020",
   border: "1px solid #2a3358",
   borderRadius: 10,
   padding: "10px 14px",
-  marginBottom: 8,
 };
-const missSummary = {
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-  fontSize: "0.97rem",
-  listStyle: "revert",
-};
-const emphTag = {
+const baLabel = {
   fontSize: "0.72rem",
-  fontWeight: 600,
-  color: "#fbbf24",
-  border: "1px solid rgba(251,191,36,0.4)",
-  borderRadius: 999,
-  padding: "1px 8px",
+  fontWeight: 700,
+  letterSpacing: "0.04em",
+  textTransform: "uppercase",
+  color: "rgba(230,233,242,0.55)",
+  marginBottom: 4,
 };
-const missDetail = {
-  margin: "10px 0 0",
-  fontSize: "0.9rem",
+const baText = {
+  fontSize: "0.95rem",
   lineHeight: 1.5,
-  color: "rgba(230,233,242,0.72)",
-};
-const coveredTag = {
-  fontSize: "0.86rem",
-  color: "#a7f3d0",
-  background: "rgba(167,243,208,0.08)",
-  border: "1px solid rgba(167,243,208,0.3)",
-  borderRadius: 999,
-  padding: "4px 12px",
+  color: "#e6e9f2",
 };

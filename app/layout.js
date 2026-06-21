@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Free ATS Resume Scan — Founding offer for laid-off tech pros",
+  title: "Get your resume tailored to the exact company you're applying to",
   description:
-    "See the real ATS match-rate Greenhouse and Workday give your resume and the exact keywords you're missing for each job. Free, runs in your browser.",
+    "Tell us the role and the company. We research their job post, recent news, and engineering/product blog, then rewrite your resume to fit what that team actually cares about — emailed back to you, fast.",
 };
 
 export default function RootLayout({ children }) {
