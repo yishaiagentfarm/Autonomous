@@ -4,28 +4,24 @@ import { useRef, useState } from "react";
 import Script from "next/script";
 
 // ---------------------------------------------------------------------------
-// LANDING PAGE — vague-at-scale reframe (task 2398e65a).
-// Founder direction + CEO creative brief:
-//   Positioning = a done-for-you service that researches, tailors, and applies
-//   resumes AT SCALE (many tailored versions across categories of business).
-//   Sell the OUTCOME (more shots on goal, done for you), NOT the mechanism.
-//   Deliberately vague: no before/after example, no list of what research we
-//   do, no concrete mechanism detail. High-level over specific.
-//   Visual: dark grey / near-black base + ONE emerald accent, used sparingly.
+// LANDING PAGE — company-match-pro design port (task 2398e65a).
 //
-//   The previous specific / before-after version is preserved in the repo at
-//   archive/OfferPage.specific.js (and in git history) for later A/B.
+//   Founder: "use the loveable template and text. implant the data needed for
+//   our company." Visual + copy are recreated verbatim from
+//   company-match-pro/src/routes/index.tsx (light editorial / Swiss look:
+//   cream base, dark slate text, ONE warm amber accent; mono+serif+extrabold
+//   type). Styling lives in app/globals.css (tokens copied from
+//   company-match-pro/src/styles.css).
 //
-//   Copy-only pre-sell. No backend; first orders fulfilled concierge/manual.
+//   PRESERVED from the prior build (the Lovable form is a dead client-side
+//   stub — we do NOT regress to it):
+//     Capture:   FormSubmit.co AJAX -> /ajax/7aa38b6421bfc605ccc0e64aa6a7edb2
+//     Analytics: Umami Cloud (website id 4a57c88b-...), events clicks_to_pay +
+//                email_captured, both carrying the ?ref attribution property.
 //
-//   Analytics:  Umami Cloud -> https://cloud.umami.is/script.js
-//               website id   4a57c88b-c0e8-4f79-b1ef-699af84f47ab
-//               custom events: clicks_to_pay (CTA intent), email_captured
-//               (successful form submit). Both carry the ?ref property so
-//               each channel's conversion attributes (PE PR #1).
-//   Capture:    FormSubmit.co AJAX -> /ajax/7aa38b6421bfc605ccc0e64aa6a7edb2
-//               captures email + resume + target role + categories. 100%
-//               client-side, Stripe NOT live ($0).
+//   Previous versions preserved: archive/OfferPage.specific.js (original
+//   specific/before-after), and the interim emerald near-black build in git
+//   history (commit f383084).
 // ---------------------------------------------------------------------------
 
 const UMAMI_WEBSITE_ID = "4a57c88b-c0e8-4f79-b1ef-699af84f47ab";
@@ -52,20 +48,32 @@ function getRef() {
   }
 }
 
-// ---- theme: dark grey / near-black base + ONE emerald accent ----
-const C = {
-  bg: "#0d0d0f",
-  panel: "#141416",
-  panelAlt: "#1a1a1d",
-  border: "#2a2a2e",
-  ink: "#ededed",
-  dim: "rgba(237,237,237,0.66)",
-  faint: "rgba(237,237,237,0.42)",
-  accent: "#34d399", // emerald — headers/accents
-  accentStrong: "#10b981", // emerald — primary buttons
-  buttonInk: "#06140d",
-  red: "#fca5a5",
-};
+const services = [
+  {
+    n: "01",
+    title: "Background research",
+    body: "We do the homework on the companies for you — so every version you send already feels like it belongs there.",
+  },
+  {
+    n: "02",
+    title: "Custom tailoring",
+    body: "Every version is tailored to fit, not mass-produced. And we reach out where it helps move things forward.",
+  },
+  {
+    n: "03",
+    title: "Applying at scale",
+    body: "Multiple tailored versions across each category of business — so you cover far more ground than you ever could by hand.",
+  },
+];
+
+const pipeline = [
+  { company: "Stripe", status: "SENT · 2m", state: "sent" },
+  { company: "Anthropic", status: "SENT · 5m", state: "sent" },
+  { company: "Vercel", status: "TAILORING", state: "queue" },
+  { company: "Linear", status: "TAILORING", state: "queue" },
+  { company: "Scale AI", status: "QUEUED", state: "pending" },
+  { company: "Notion", status: "QUEUED", state: "pending" },
+];
 
 export default function OfferPage() {
   const formRef = useRef(null);
@@ -78,7 +86,8 @@ export default function OfferPage() {
   const [status, setStatus] = useState("idle"); // idle | sending | done | error
   const [message, setMessage] = useState("");
 
-  function handleCtaClick() {
+  function handleCtaClick(e) {
+    if (e) e.preventDefault();
     track("clicks_to_pay", { ref: getRef() });
     if (formRef.current)
       formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -117,7 +126,7 @@ export default function OfferPage() {
       if (res.ok && data.success !== "false") {
         track("email_captured", { ref: getRef() });
         setStatus("done");
-        setMessage("You're in. We'll be in touch shortly to get you set up.");
+        setMessage("");
         setEmail("");
         setResume("");
         setRole("");
@@ -134,21 +143,6 @@ export default function OfferPage() {
     }
   }
 
-  const perks = [
-    {
-      h: "Background research",
-      p: "We do the homework on the companies for you — so every version you send already feels like it belongs there.",
-    },
-    {
-      h: "Custom tailoring",
-      p: "Every version is tailored to fit, not mass-produced. And we reach out where it helps move things forward.",
-    },
-    {
-      h: "Applying at scale",
-      p: "Multiple tailored versions across each category of business — so you cover far more ground than you ever could by hand.",
-    },
-  ];
-
   return (
     <>
       <Script
@@ -158,329 +152,242 @@ export default function OfferPage() {
         strategy="afterInteractive"
       />
 
-      <main
-        style={{ minHeight: "100vh", padding: "0 18px 72px", boxSizing: "border-box" }}
-      >
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          {/* ---------------- HERO ---------------- */}
-          <section style={{ padding: "64px 0 8px", textAlign: "center" }}>
-            <span style={eyebrow}>Done for you · at scale</span>
-
-            <h1
-              style={{
-                fontSize: "clamp(2.1rem, 6.4vw, 3.1rem)",
-                lineHeight: 1.1,
-                margin: "22px 0 18px",
-                fontWeight: 800,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              More shots on goal,
-              <br />
-              <span style={{ color: C.accent }}>done for you.</span>
-            </h1>
-
-            <p
-              style={{
-                fontSize: "clamp(1.05rem, 3.4vw, 1.25rem)",
-                lineHeight: 1.55,
-                color: C.dim,
-                margin: "0 auto 30px",
-                maxWidth: 600,
-              }}
-            >
-              We research, tailor, and apply on your behalf — far more widely than
-              you could by hand. You bring the resume. We handle the rest.
-            </p>
-
-            <button onClick={handleCtaClick} style={btnPrimary}>
-              Claim your founding spot →
-            </button>
-          </section>
-
-          {/* ---------------- PERKS ---------------- */}
-          <section style={{ margin: "56px 0 8px" }}>
-            <h2 style={sectionHeader}>What you get</h2>
-            <div style={{ display: "grid", gap: 14, gridTemplateColumns: "1fr" }}>
-              {perks.map((b, i) => (
-                <div key={i} style={card}>
-                  <div style={cardNum}>{String(i + 1).padStart(2, "0")}</div>
-                  <div>
-                    <div style={cardTitle}>{b.h}</div>
-                    <div style={cardBody}>{b.p}</div>
-                  </div>
-                </div>
-              ))}
+      {/* ---------------- NAV ---------------- */}
+      <nav className="nav">
+        <div className="wrap nav-inner">
+          <div className="nav-left">
+            <span className="brand">Autonomous</span>
+            <div className="nav-links">
+              <a href="#what-you-get">What you get</a>
+              <a href="#scale">Scale</a>
+              <a href="#claim">Claim spot</a>
             </div>
-          </section>
-
-          {/* ---------------- AT SCALE FRAMING ---------------- */}
-          <section style={{ marginTop: 48 }}>
-            <h2 style={sectionHeader}>The whole thing, handled</h2>
-            <div
-              style={{
-                background: C.panelAlt,
-                border: `1px solid ${C.border}`,
-                borderLeft: `3px solid ${C.accent}`,
-                borderRadius: 16,
-                padding: "26px 24px",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "1.08rem",
-                  lineHeight: 1.6,
-                  color: C.ink,
-                  margin: 0,
-                }}
-              >
-                Getting noticed rewards both reach and fit — and doing both by
-                hand is exhausting. We take it off your plate end to end: the
-                research, the tailoring, the outreach. You get more shots on goal
-                without the grind — working quietly in the background while you
-                get on with your day.
-              </p>
-            </div>
-          </section>
-
-          {/* ---------------- OFFER + CAPTURE ---------------- */}
-          <section
-            ref={formRef}
-            style={{
-              marginTop: 48,
-              background: C.panel,
-              border: `1px solid ${C.border}`,
-              borderRadius: 20,
-              padding: "30px 24px",
-            }}
-          >
-            <div
-              style={{
-                display: "inline-block",
-                padding: "6px 14px",
-                borderRadius: 999,
-                background: "rgba(52,211,153,0.12)",
-                border: `1px solid rgba(52,211,153,0.35)`,
-                color: C.accent,
-                fontSize: "0.84rem",
-                fontWeight: 700,
-                marginBottom: 16,
-              }}
-            >
-              Founding rate $19/mo — locked for life
-            </div>
-
-            <h2
-              style={{
-                fontSize: "clamp(1.5rem, 4.6vw, 1.95rem)",
-                margin: "0 0 8px",
-                fontWeight: 800,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Claim your founding spot
-            </h2>
-            <p style={{ color: C.dim, margin: "0 0 24px", fontSize: "1rem", lineHeight: 1.55 }}>
-              No charge today. Tell us where you&apos;re aiming and we&apos;ll get
-              you set up — handled by real people, with a fast turnaround.
-            </p>
-
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="cap-email" style={label}>
-                Email
-              </label>
-              <input
-                id="cap-email"
-                ref={emailRef}
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
-                style={input}
-              />
-
-              <label htmlFor="cap-role" style={{ ...label, marginTop: 18 }}>
-                Target role / job title
-              </label>
-              <input
-                id="cap-role"
-                type="text"
-                required
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. Senior Backend Engineer"
-                style={input}
-              />
-
-              <label htmlFor="cap-categories" style={{ ...label, marginTop: 18 }}>
-                Where are you aiming?{" "}
-                <span style={{ fontWeight: 400, color: C.dim }}>
-                  (optional — the kinds of companies you want to reach)
-                </span>
-              </label>
-              <input
-                id="cap-categories"
-                type="text"
-                value={categories}
-                onChange={(e) => setCategories(e.target.value)}
-                placeholder="e.g. fintech, early-stage startups, healthcare"
-                style={input}
-              />
-
-              <label htmlFor="cap-resume" style={{ ...label, marginTop: 18 }}>
-                Paste your resume
-              </label>
-              <textarea
-                id="cap-resume"
-                required
-                value={resume}
-                onChange={(e) => setResume(e.target.value)}
-                placeholder="Paste the full text of your resume…"
-                rows={6}
-                style={textarea}
-              />
-
-              <button
-                type="submit"
-                disabled={status === "sending"}
-                style={{
-                  ...btnPrimary,
-                  width: "100%",
-                  maxWidth: "none",
-                  marginTop: 22,
-                  background: status === "sending" ? "#1f3a30" : C.accentStrong,
-                  color: status === "sending" ? C.dim : C.buttonInk,
-                  cursor: status === "sending" ? "default" : "pointer",
-                }}
-              >
-                {status === "sending" ? "Sending…" : "Claim my founding spot →"}
-              </button>
-
-              {message && (
-                <p
-                  role="status"
-                  style={{
-                    marginTop: 16,
-                    marginBottom: 0,
-                    fontSize: "0.97rem",
-                    fontWeight: 600,
-                    color: status === "error" ? C.red : C.accent,
-                  }}
-                >
-                  {message}
-                </p>
-              )}
-            </form>
-          </section>
-
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "0.82rem",
-              color: C.faint,
-              marginTop: 32,
-              lineHeight: 1.5,
-            }}
-          >
-            Founding-member pre-launch · handled by real people · no charge today.
-          </p>
+          </div>
+          <a href="#claim" className="btn-solid" onClick={handleCtaClick}>
+            Claim Founding Spot
+          </a>
         </div>
-      </main>
+      </nav>
+
+      {/* ---------------- HERO ---------------- */}
+      <section className="hero">
+        <div className="wrap">
+          <div className="hero-col">
+            <div className="eyebrow reveal d1">
+              <span className="sq2" />
+              <span className="lbl">Done for you · At scale</span>
+            </div>
+            <h1 className="h1 reveal d2">
+              More shots on goal,{" "}
+              <span className="serif">done for you.</span>
+            </h1>
+            <p className="hero-sub reveal d3">
+              We research, tailor, and apply on your behalf — far more widely
+              than you could by hand.{" "}
+              <span className="strong">
+                You bring the resume. We handle the rest.
+              </span>
+            </p>
+            <a href="#claim" className="btn-cta reveal d4" onClick={handleCtaClick}>
+              Claim your founding spot
+              <span aria-hidden>→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- WHAT YOU GET ---------------- */}
+      <section id="what-you-get" className="whatyouget">
+        <div className="wrap">
+          <div className="sec-label">What you get</div>
+          <div className="perk-grid">
+            {services.map((s) => (
+              <div key={s.n} className="perk">
+                <div className="perk-head">
+                  <span className="perk-n">{s.n}</span>
+                  <h3 className="perk-title">{s.title}</h3>
+                </div>
+                <p className="perk-body">{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- SCALE ---------------- */}
+      <section id="scale" className="scale">
+        <div className="wrap scale-grid">
+          <div>
+            <div className="sec-label" style={{ marginBottom: 24 }}>
+              The whole thing, handled
+            </div>
+            <h2 className="scale-h2">
+              Reach <span className="serif">and</span> fit — without the grind.
+            </h2>
+            <p className="scale-p">
+              Getting noticed rewards both reach and fit — and doing both by hand
+              is exhausting. We take it off your plate end to end: the research,
+              the tailoring, the outreach. You get more shots on goal while we
+              work quietly in the background.
+            </p>
+          </div>
+
+          <div className="pipe-grid">
+            {pipeline.map((p) => (
+              <div key={p.company} className={`tile ${p.state}`}>
+                <div className="tile-sq" />
+                <div
+                  className={`tile-status ${p.state === "sent" ? "sent" : ""}`}
+                >
+                  {p.status}
+                </div>
+                <div className="tile-co">{p.company}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- CLAIM ---------------- */}
+      <section id="claim" className="claim">
+        <div className="wrap claim-grid">
+          <div>
+            <div className="sec-label accent" style={{ marginBottom: 24 }}>
+              Founding pre-launch
+            </div>
+            <h2 className="claim-h2">
+              Claim your <span className="serif">founding spot.</span>
+            </h2>
+            <p className="claim-lead">
+              No charge today. Tell us where you&apos;re aiming and we&apos;ll
+              get you set up — handled by real people, with a fast turnaround.
+            </p>
+            <div className="price-card">
+              <div className="price-row">
+                <span className="price-amt">$19</span>
+                <span className="price-per">/ month</span>
+              </div>
+              <p className="price-note">Founding rate — locked for life</p>
+            </div>
+          </div>
+
+          <form ref={formRef} className="form-card" onSubmit={handleSubmit}>
+            {status === "done" ? (
+              <div className="success">
+                <div className="sq10" />
+                <h3>You&apos;re in.</h3>
+                <p>
+                  We&apos;ll be in touch shortly to get you set up. Real people,
+                  fast turnaround.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="field">
+                  <label htmlFor="cap-email" className="field-label">
+                    Email
+                  </label>
+                  <input
+                    id="cap-email"
+                    ref={emailRef}
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@domain.com"
+                    className="field-input"
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="cap-role" className="field-label">
+                    Target role / job title
+                  </label>
+                  <input
+                    id="cap-role"
+                    type="text"
+                    required
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    placeholder="e.g. Senior Product Designer"
+                    className="field-input"
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="cap-categories" className="field-label">
+                    Where are you aiming?
+                    <span className="field-hint">
+                      — optional — the kinds of companies you want to reach
+                    </span>
+                  </label>
+                  <input
+                    id="cap-categories"
+                    type="text"
+                    value={categories}
+                    onChange={(e) => setCategories(e.target.value)}
+                    placeholder="e.g. Seed-stage AI tooling, fintech, climate"
+                    className="field-input"
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="cap-resume" className="field-label">
+                    Paste your resume
+                  </label>
+                  <textarea
+                    id="cap-resume"
+                    required
+                    value={resume}
+                    onChange={(e) => setResume(e.target.value)}
+                    placeholder="Paste plain text — we'll handle the formatting."
+                    rows={5}
+                    className="field-textarea"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={status === "sending"}
+                  className="btn-submit"
+                >
+                  {status === "sending" ? "Sending…" : "Claim my founding spot"}
+                  <span aria-hidden>→</span>
+                </button>
+
+                {message ? (
+                  <p
+                    role="status"
+                    className={`form-msg ${
+                      status === "error" ? "error" : "ok"
+                    }`}
+                  >
+                    {message}
+                  </p>
+                ) : (
+                  <p className="form-foot">
+                    Handled by real people · no charge today
+                  </p>
+                )}
+              </>
+            )}
+          </form>
+        </div>
+      </section>
+
+      {/* ---------------- FOOTER ---------------- */}
+      <footer className="foot">
+        <div className="wrap foot-inner">
+          <div className="foot-copy">
+            © 2026 Autonomous — Done for you, at scale
+          </div>
+          <div className="foot-links">
+            <a href="#">Privacy</a>
+            <a href="#">Contact</a>
+            <a href="#">Terms</a>
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
-
-// ---- shared inline styles ----
-const eyebrow = {
-  display: "inline-block",
-  padding: "6px 14px",
-  borderRadius: 999,
-  background: C.panelAlt,
-  border: `1px solid ${C.border}`,
-  fontSize: "0.78rem",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: C.accent,
-  fontWeight: 600,
-};
-const sectionHeader = {
-  fontSize: "0.82rem",
-  fontWeight: 700,
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-  color: C.faint,
-  margin: "0 0 18px",
-};
-const card = {
-  display: "flex",
-  gap: 16,
-  alignItems: "flex-start",
-  background: C.panel,
-  border: `1px solid ${C.border}`,
-  borderRadius: 16,
-  padding: "20px 22px",
-  textAlign: "left",
-};
-const cardNum = {
-  flex: "0 0 auto",
-  fontSize: "0.95rem",
-  fontWeight: 800,
-  color: C.accent,
-  fontVariantNumeric: "tabular-nums",
-  paddingTop: 2,
-};
-const cardTitle = {
-  fontWeight: 700,
-  fontSize: "1.12rem",
-  marginBottom: 6,
-  color: C.ink,
-};
-const cardBody = {
-  fontSize: "1rem",
-  lineHeight: 1.55,
-  color: C.dim,
-};
-const btnPrimary = {
-  display: "inline-block",
-  padding: "16px 32px",
-  fontSize: "1.05rem",
-  fontWeight: 700,
-  color: C.buttonInk,
-  background: C.accentStrong,
-  border: "none",
-  borderRadius: 12,
-  cursor: "pointer",
-  width: "100%",
-  maxWidth: 380,
-};
-const label = {
-  display: "block",
-  fontSize: "0.92rem",
-  fontWeight: 600,
-  marginBottom: 8,
-  color: C.ink,
-};
-const input = {
-  width: "100%",
-  padding: "13px 14px",
-  fontSize: "1rem",
-  borderRadius: 10,
-  border: `1px solid ${C.border}`,
-  background: C.bg,
-  color: C.ink,
-  boxSizing: "border-box",
-};
-const textarea = {
-  width: "100%",
-  padding: "12px 14px",
-  fontSize: "0.98rem",
-  lineHeight: 1.5,
-  borderRadius: 10,
-  border: `1px solid ${C.border}`,
-  background: C.bg,
-  color: C.ink,
-  boxSizing: "border-box",
-  fontFamily: "inherit",
-  resize: "vertical",
-};

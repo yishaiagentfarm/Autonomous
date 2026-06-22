@@ -1,23 +1,15 @@
+import "./globals.css";
+
 export const metadata = {
-  title: "Tailored resumes, done for you — at scale",
+  title: "More shots on goal, done for you — Tailored applications at scale",
   description:
-    "We do the homework, tailor every version to fit, and apply across far more of the market than you could by hand. More shots on goal, done for you.",
+    "We research, tailor, and apply on your behalf — far more widely than you could by hand. You bring the resume. We handle the rest.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          fontFamily:
-            "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
-          background: "#0d0d0f",
-          color: "#ededed",
-        }}
-      >
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
