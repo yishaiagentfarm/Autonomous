@@ -51,18 +51,18 @@ function getRef() {
 const services = [
   {
     n: "01",
-    title: "Background research",
-    body: "We do the homework on the companies for you — so every version you send already feels like it belongs there.",
+    title: "We research the companies",
+    body: "For every company you're targeting, we do the homework on the role and the team — so your application speaks their language and fits the job.",
   },
   {
     n: "02",
-    title: "Custom tailoring",
-    body: "Every version is tailored to fit, not mass-produced. And we reach out where it helps move things forward.",
+    title: "We tailor your resume",
+    body: "We rewrite your resume to fit each specific role — never a generic copy-paste — and reach out on your behalf where it helps you get noticed.",
   },
   {
     n: "03",
-    title: "Applying at scale",
-    body: "Multiple tailored versions across each category of business — so you cover far more ground than you ever could by hand.",
+    title: "We apply at scale",
+    body: "We send tailored applications across the companies you want to reach — so you get far more shots on goal than you could ever manage by hand.",
   },
 ];
 
@@ -175,15 +175,16 @@ export default function OfferPage() {
           <div className="hero-col">
             <div className="eyebrow reveal d1">
               <span className="sq2" />
-              <span className="lbl">Done for you · At scale</span>
+              <span className="lbl">Done-for-you job applications</span>
             </div>
             <h1 className="h1 reveal d2">
-              More shots on goal,{" "}
-              <span className="serif">done for you.</span>
+              We apply to jobs{" "}
+              <span className="serif">for you.</span>
             </h1>
             <p className="hero-sub reveal d3">
-              We research, tailor, and apply on your behalf — far more widely
-              than you could by hand.{" "}
+              Tell us your target role and the kind of companies you want to
+              work at. We research each one, tailor your resume to fit, and
+              send the applications — far more than you could by hand.{" "}
               <span className="strong">
                 You bring the resume. We handle the rest.
               </span>
@@ -225,10 +226,11 @@ export default function OfferPage() {
               Reach <span className="serif">and</span> fit — without the grind.
             </h2>
             <p className="scale-p">
-              Getting noticed rewards both reach and fit — and doing both by hand
-              is exhausting. We take it off your plate end to end: the research,
-              the tailoring, the outreach. You get more shots on goal while we
-              work quietly in the background.
+              Landing interviews rewards both reach and fit — and doing both by
+              hand is exhausting. We take the whole job hunt off your plate: the
+              company research, the resume tailoring, the applying and outreach.
+              You get more shots on goal while we work quietly in the
+              background.
             </p>
           </div>
 
@@ -259,15 +261,19 @@ export default function OfferPage() {
               Claim your <span className="serif">founding spot.</span>
             </h2>
             <p className="claim-lead">
-              No charge today. Tell us where you&apos;re aiming and we&apos;ll
-              get you set up — handled by real people, with a fast turnaround.
+              We&apos;re onboarding our first founding members now. Tell us your
+              target role and where you&apos;re aiming, and we&apos;ll start
+              applying for you — handled by real people, with a fast turnaround.
             </p>
             <div className="price-card">
               <div className="price-row">
                 <span className="price-amt">$19</span>
-                <span className="price-per">/ month</span>
+                <span className="price-per">/ month at launch</span>
               </div>
-              <p className="price-note">Founding rate — locked for life</p>
+              <p className="price-note">
+                Founding members lock this rate for life — and you&apos;re not
+                charged a cent until we launch.
+              </p>
             </div>
           </div>
 
