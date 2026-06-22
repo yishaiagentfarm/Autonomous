@@ -4,15 +4,19 @@ import { useRef, useState } from "react";
 import Script from "next/script";
 
 // ---------------------------------------------------------------------------
-// PRE-SELL OFFER PAGE — company-tailored + async-email reframe (task 71f1fdab).
-// Founder direction (1ad73aa5) / CEO decision (knowledge 1da97568):
-//   Positioning = resume TAILORED TO THE SPECIFIC TARGET COMPANY (we research
-//   the company + role, then rewrite the resume to fit) — NOT generic ATS
-//   keyword-matching. Delivery is async/email, framed as quiet reassurance,
-//   never sold as the feature. Show the research depth, don't just claim it.
+// LANDING PAGE — vague-at-scale reframe (task 2398e65a).
+// Founder direction + CEO creative brief:
+//   Positioning = a done-for-you service that researches, tailors, and applies
+//   resumes AT SCALE (many tailored versions across categories of business).
+//   Sell the OUTCOME (more shots on goal, done for you), NOT the mechanism.
+//   Deliberately vague: no before/after example, no list of what research we
+//   do, no concrete mechanism detail. High-level over specific.
+//   Visual: dark grey / near-black base + ONE emerald accent, used sparingly.
+//
+//   The previous specific / before-after version is preserved in the repo at
+//   archive/OfferPage.specific.js (and in git history) for later A/B.
 //
 //   Copy-only pre-sell. No backend; first orders fulfilled concierge/manual.
-//   Auto-submit of applications = Phase 2 (NOT built here).
 //
 //   Analytics:  Umami Cloud -> https://cloud.umami.is/script.js
 //               website id   4a57c88b-c0e8-4f79-b1ef-699af84f47ab
@@ -20,8 +24,8 @@ import Script from "next/script";
 //               (successful form submit). Both carry the ?ref property so
 //               each channel's conversion attributes (PE PR #1).
 //   Capture:    FormSubmit.co AJAX -> /ajax/7aa38b6421bfc605ccc0e64aa6a7edb2
-//               captures email + resume + target company + target role + job
-//               post (optional). 100% client-side, Stripe NOT live ($0).
+//               captures email + resume + target role + categories. 100%
+//               client-side, Stripe NOT live ($0).
 // ---------------------------------------------------------------------------
 
 const UMAMI_WEBSITE_ID = "4a57c88b-c0e8-4f79-b1ef-699af84f47ab";
@@ -39,7 +43,6 @@ function track(event, data) {
 }
 
 // Read the ?ref query param so conversion events attribute per channel.
-// Returns "" when no ?ref is present.
 function getRef() {
   if (typeof window === "undefined") return "";
   try {
@@ -49,34 +52,32 @@ function getRef() {
   }
 }
 
+// ---- theme: dark grey / near-black base + ONE emerald accent ----
 const C = {
-  bg: "#0b1020",
-  card: "#111935",
-  cardAlt: "#161d3a",
-  border: "#2a3358",
-  ink: "#e6e9f2",
-  sky: "#7dd3fc",
-  mint: "#a7f3d0",
-  amber: "#fbbf24",
+  bg: "#0d0d0f",
+  panel: "#141416",
+  panelAlt: "#1a1a1d",
+  border: "#2a2a2e",
+  ink: "#ededed",
+  dim: "rgba(237,237,237,0.66)",
+  faint: "rgba(237,237,237,0.42)",
+  accent: "#34d399", // emerald — headers/accents
+  accentStrong: "#10b981", // emerald — primary buttons
+  buttonInk: "#06140d",
   red: "#fca5a5",
-  dim: "rgba(230,233,242,0.72)",
 };
 
 export default function OfferPage() {
   const formRef = useRef(null);
   const emailRef = useRef(null);
 
-  // Capture-form state
   const [email, setEmail] = useState("");
   const [resume, setResume] = useState("");
-  const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
-  const [jobPost, setJobPost] = useState("");
+  const [categories, setCategories] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending | done | error
   const [message, setMessage] = useState("");
 
-  // Hero/price CTA: fires the conversion-intent event the go/no-go gate counts,
-  // then scrolls to the capture form and focuses the first field.
   function handleCtaClick() {
     track("clicks_to_pay", { ref: getRef() });
     if (formRef.current)
@@ -87,9 +88,9 @@ export default function OfferPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (status === "sending") return;
-    if (!email || !resume || !company || !role) {
+    if (!email || !resume || !role) {
       setStatus("error");
-      setMessage("Please fill in your email, resume, target company, and role.");
+      setMessage("Please add your email, target role, and resume.");
       return;
     }
     setStatus("sending");
@@ -103,12 +104,11 @@ export default function OfferPage() {
         },
         body: JSON.stringify({
           email,
-          target_company: company,
           target_role: role,
+          target_categories: categories,
           resume,
-          job_post: jobPost,
           ref: getRef(),
-          _subject: "New tailored-resume request (company-tailored pre-sell)",
+          _subject: "New founding-member request (tailored-at-scale)",
           _template: "table",
           _captcha: "false",
         }),
@@ -117,14 +117,11 @@ export default function OfferPage() {
       if (res.ok && data.success !== "false") {
         track("email_captured", { ref: getRef() });
         setStatus("done");
-        setMessage(
-          "Got it. We're on it — watch your inbox for your tailored resume."
-        );
+        setMessage("You're in. We'll be in touch shortly to get you set up.");
         setEmail("");
         setResume("");
-        setCompany("");
         setRole("");
-        setJobPost("");
+        setCategories("");
       } else {
         setStatus("error");
         setMessage(
@@ -137,19 +134,18 @@ export default function OfferPage() {
     }
   }
 
-  const cards = [
+  const perks = [
     {
-      h: "We research the company, not just the keywords",
-      p: "We read the real job post, the company's recent news, and their engineering/product blog to find what this team actually prioritizes — then rewrite your bullets to speak to it. Not the generic ATS keywords ChatGPT guesses at.",
+      h: "Background research",
+      p: "We do the homework on the companies for you — so every version you send already feels like it belongs there.",
     },
     {
-      h: "See the difference",
-      p: null,
-      beforeAfter: true,
+      h: "Custom tailoring",
+      p: "Every version is tailored to fit, not mass-produced. And we reach out where it helps move things forward.",
     },
     {
-      h: "Submit once. We do the work.",
-      p: "No dashboard to wrestle, no re-prompting. Send your resume and target role, and we research, rewrite, and email your tailored resume back — fast.",
+      h: "Applying at scale",
+      p: "Multiple tailored versions across each category of business — so you cover far more ground than you ever could by hand.",
     },
   ];
 
@@ -163,191 +159,130 @@ export default function OfferPage() {
       />
 
       <main
-        style={{
-          minHeight: "100vh",
-          padding: "0 18px 64px",
-          boxSizing: "border-box",
-        }}
+        style={{ minHeight: "100vh", padding: "0 18px 72px", boxSizing: "border-box" }}
       >
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
           {/* ---------------- HERO ---------------- */}
-          <section style={{ padding: "56px 0 8px", textAlign: "center" }}>
-            <span
-              style={{
-                display: "inline-block",
-                padding: "6px 14px",
-                borderRadius: 999,
-                background: C.cardAlt,
-                border: `1px solid ${C.border}`,
-                fontSize: "0.78rem",
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                color: C.dim,
-              }}
-            >
-              For when one role really matters — done right, not 50 done generically
-            </span>
+          <section style={{ padding: "64px 0 8px", textAlign: "center" }}>
+            <span style={eyebrow}>Done for you · at scale</span>
 
             <h1
               style={{
-                fontSize: "clamp(1.9rem, 6vw, 2.8rem)",
-                lineHeight: 1.14,
-                margin: "22px 0 16px",
+                fontSize: "clamp(2.1rem, 6.4vw, 3.1rem)",
+                lineHeight: 1.1,
+                margin: "22px 0 18px",
                 fontWeight: 800,
+                letterSpacing: "-0.02em",
               }}
             >
-              Get your resume rewritten to fit the exact company you&apos;re
-              applying to.
+              More shots on goal,
+              <br />
+              <span style={{ color: C.accent }}>done for you.</span>
             </h1>
 
             <p
               style={{
-                fontSize: "clamp(1.02rem, 3.4vw, 1.2rem)",
+                fontSize: "clamp(1.05rem, 3.4vw, 1.25rem)",
                 lineHeight: 1.55,
                 color: C.dim,
-                margin: "0 auto 28px",
-                maxWidth: 560,
+                margin: "0 auto 30px",
+                maxWidth: 600,
               }}
             >
-              Tell us the role and the company. We read their job post, recent
-              news, and engineering/product blog — then rewrite your resume to
-              match what that team actually cares about. It lands in your inbox,
-              fast.
+              We research, tailor, and apply on your behalf — far more widely than
+              you could by hand. You bring the resume. We handle the rest.
             </p>
 
             <button onClick={handleCtaClick} style={btnPrimary}>
-              Tailor my resume →
+              Claim your founding spot →
             </button>
           </section>
 
-          {/* ---------------- VALUE CARDS ---------------- */}
-          <section
-            style={{
-              display: "grid",
-              gap: 12,
-              gridTemplateColumns: "1fr",
-              margin: "36px 0 8px",
-            }}
-          >
-            {cards.map((b, i) => (
-              <div
-                key={i}
+          {/* ---------------- PERKS ---------------- */}
+          <section style={{ margin: "56px 0 8px" }}>
+            <h2 style={sectionHeader}>What you get</h2>
+            <div style={{ display: "grid", gap: 14, gridTemplateColumns: "1fr" }}>
+              {perks.map((b, i) => (
+                <div key={i} style={card}>
+                  <div style={cardNum}>{String(i + 1).padStart(2, "0")}</div>
+                  <div>
+                    <div style={cardTitle}>{b.h}</div>
+                    <div style={cardBody}>{b.p}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ---------------- AT SCALE FRAMING ---------------- */}
+          <section style={{ marginTop: 48 }}>
+            <h2 style={sectionHeader}>The whole thing, handled</h2>
+            <div
+              style={{
+                background: C.panelAlt,
+                border: `1px solid ${C.border}`,
+                borderLeft: `3px solid ${C.accent}`,
+                borderRadius: 16,
+                padding: "26px 24px",
+              }}
+            >
+              <p
                 style={{
-                  background: C.card,
-                  border: `1px solid ${C.border}`,
-                  borderRadius: 14,
-                  padding: "16px 18px",
-                  textAlign: "left",
+                  fontSize: "1.08rem",
+                  lineHeight: 1.6,
+                  color: C.ink,
+                  margin: 0,
                 }}
               >
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: "1.02rem",
-                    marginBottom: 6,
-                    color: C.sky,
-                  }}
-                >
-                  {b.h}
-                </div>
-                {b.p && (
-                  <div
-                    style={{ fontSize: "0.96rem", lineHeight: 1.5, color: C.dim }}
-                  >
-                    {b.p}
-                  </div>
-                )}
-                {b.beforeAfter && (
-                  <div style={{ display: "grid", gap: 10, marginTop: 4 }}>
-                    <div style={baCol}>
-                      <div style={baLabel}>Before</div>
-                      <div style={baText}>
-                        &ldquo;Built backend services in Go.&rdquo;
-                      </div>
-                    </div>
-                    <div style={{ ...baCol, borderColor: "rgba(167,243,208,0.4)" }}>
-                      <div style={{ ...baLabel, color: C.mint }}>
-                        After — targeting a fintech that emphasizes reliability
-                      </div>
-                      <div style={baText}>
-                        &ldquo;Re-architected the payment-ledger service in Go,
-                        cutting reconciliation errors 40% — matching
-                        [Company]&apos;s public push on payment reliability.&rdquo;
-                      </div>
-                    </div>
-                    <div style={{ fontSize: "0.88rem", color: C.dim }}>
-                      Specific, true to you, aimed at them.
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                Getting noticed rewards both reach and fit — and doing both by
+                hand is exhausting. We take it off your plate end to end: the
+                research, the tailoring, the outreach. You get more shots on goal
+                without the grind — working quietly in the background while you
+                get on with your day.
+              </p>
+            </div>
           </section>
 
-          {/* ---------------- PRICE + CTA ---------------- */}
-          <section
-            style={{
-              marginTop: 24,
-              background: "linear-gradient(160deg, #15224a, #111935)",
-              border: `1px solid ${C.border}`,
-              borderRadius: 18,
-              padding: "26px 22px",
-              textAlign: "center",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "1.1rem",
-                fontWeight: 700,
-                margin: "0 0 6px",
-                color: C.sky,
-              }}
-            >
-              Founding rate $19/mo — locked for life.
-            </p>
-            <p
-              style={{
-                fontSize: "1.0rem",
-                lineHeight: 1.55,
-                margin: "0 0 20px",
-                color: C.dim,
-              }}
-            >
-              No charge today. Reserve your spot and we&apos;ll email your first
-              tailored resume.
-            </p>
-
-            <button
-              onClick={handleCtaClick}
-              style={{ ...btnPrimary, background: C.mint }}
-            >
-              Tailor my resume →
-            </button>
-          </section>
-
-          {/* ---------------- CAPTURE FORM ---------------- */}
+          {/* ---------------- OFFER + CAPTURE ---------------- */}
           <section
             ref={formRef}
             style={{
-              marginTop: 24,
-              background: C.card,
+              marginTop: 48,
+              background: C.panel,
               border: `1px solid ${C.border}`,
-              borderRadius: 18,
-              padding: "26px 22px",
+              borderRadius: 20,
+              padding: "30px 24px",
             }}
           >
-            <h2
+            <div
               style={{
-                fontSize: "clamp(1.4rem, 4.5vw, 1.8rem)",
-                margin: "0 0 6px",
-                fontWeight: 800,
+                display: "inline-block",
+                padding: "6px 14px",
+                borderRadius: 999,
+                background: "rgba(52,211,153,0.12)",
+                border: `1px solid rgba(52,211,153,0.35)`,
+                color: C.accent,
+                fontSize: "0.84rem",
+                fontWeight: 700,
+                marginBottom: 16,
               }}
             >
-              Send us the role — we&apos;ll tailor your resume to it
+              Founding rate $19/mo — locked for life
+            </div>
+
+            <h2
+              style={{
+                fontSize: "clamp(1.5rem, 4.6vw, 1.95rem)",
+                margin: "0 0 8px",
+                fontWeight: 800,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Claim your founding spot
             </h2>
-            <p style={{ color: C.dim, margin: "0 0 20px", fontSize: "0.98rem" }}>
-              Founding-member pre-launch. First tailored resumes are fulfilled by
-              our team. We&apos;ll email you back fast.
+            <p style={{ color: C.dim, margin: "0 0 24px", fontSize: "1rem", lineHeight: 1.55 }}>
+              No charge today. Tell us where you&apos;re aiming and we&apos;ll get
+              you set up — handled by real people, with a fast turnaround.
             </p>
 
             <form onSubmit={handleSubmit}>
@@ -365,20 +300,7 @@ export default function OfferPage() {
                 style={input}
               />
 
-              <label htmlFor="cap-company" style={{ ...label, marginTop: 16 }}>
-                Target company
-              </label>
-              <input
-                id="cap-company"
-                type="text"
-                required
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="e.g. Stripe"
-                style={input}
-              />
-
-              <label htmlFor="cap-role" style={{ ...label, marginTop: 16 }}>
+              <label htmlFor="cap-role" style={{ ...label, marginTop: 18 }}>
                 Target role / job title
               </label>
               <input
@@ -391,7 +313,22 @@ export default function OfferPage() {
                 style={input}
               />
 
-              <label htmlFor="cap-resume" style={{ ...label, marginTop: 16 }}>
+              <label htmlFor="cap-categories" style={{ ...label, marginTop: 18 }}>
+                Where are you aiming?{" "}
+                <span style={{ fontWeight: 400, color: C.dim }}>
+                  (optional — the kinds of companies you want to reach)
+                </span>
+              </label>
+              <input
+                id="cap-categories"
+                type="text"
+                value={categories}
+                onChange={(e) => setCategories(e.target.value)}
+                placeholder="e.g. fintech, early-stage startups, healthcare"
+                style={input}
+              />
+
+              <label htmlFor="cap-resume" style={{ ...label, marginTop: 18 }}>
                 Paste your resume
               </label>
               <textarea
@@ -404,21 +341,6 @@ export default function OfferPage() {
                 style={textarea}
               />
 
-              <label htmlFor="cap-jobpost" style={{ ...label, marginTop: 16 }}>
-                Job post URL or paste{" "}
-                <span style={{ fontWeight: 400, color: C.dim }}>
-                  (optional — helps us research faster)
-                </span>
-              </label>
-              <textarea
-                id="cap-jobpost"
-                value={jobPost}
-                onChange={(e) => setJobPost(e.target.value)}
-                placeholder="Link to the job posting, or paste it here…"
-                rows={3}
-                style={textarea}
-              />
-
               <button
                 type="submit"
                 disabled={status === "sending"}
@@ -426,14 +348,13 @@ export default function OfferPage() {
                   ...btnPrimary,
                   width: "100%",
                   maxWidth: "none",
-                  marginTop: 20,
-                  background: status === "sending" ? "#3a4a6b" : C.mint,
+                  marginTop: 22,
+                  background: status === "sending" ? "#1f3a30" : C.accentStrong,
+                  color: status === "sending" ? C.dim : C.buttonInk,
                   cursor: status === "sending" ? "default" : "pointer",
                 }}
               >
-                {status === "sending"
-                  ? "Sending…"
-                  : "Send me my tailored resume →"}
+                {status === "sending" ? "Sending…" : "Claim my founding spot →"}
               </button>
 
               {message && (
@@ -444,7 +365,7 @@ export default function OfferPage() {
                     marginBottom: 0,
                     fontSize: "0.97rem",
                     fontWeight: 600,
-                    color: status === "error" ? C.red : C.mint,
+                    color: status === "error" ? C.red : C.accent,
                   }}
                 >
                   {message}
@@ -456,13 +377,13 @@ export default function OfferPage() {
           <p
             style={{
               textAlign: "center",
-              fontSize: "0.8rem",
-              color: "rgba(230,233,242,0.45)",
-              marginTop: 30,
+              fontSize: "0.82rem",
+              color: C.faint,
+              marginTop: 32,
+              lineHeight: 1.5,
             }}
           >
-            Founding-member pre-launch. No charge today — send us your target
-            role and we&apos;ll email your first tailored resume.
+            Founding-member pre-launch · handled by real people · no charge today.
           </p>
         </div>
       </main>
@@ -471,13 +392,62 @@ export default function OfferPage() {
 }
 
 // ---- shared inline styles ----
+const eyebrow = {
+  display: "inline-block",
+  padding: "6px 14px",
+  borderRadius: 999,
+  background: C.panelAlt,
+  border: `1px solid ${C.border}`,
+  fontSize: "0.78rem",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: C.accent,
+  fontWeight: 600,
+};
+const sectionHeader = {
+  fontSize: "0.82rem",
+  fontWeight: 700,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  color: C.faint,
+  margin: "0 0 18px",
+};
+const card = {
+  display: "flex",
+  gap: 16,
+  alignItems: "flex-start",
+  background: C.panel,
+  border: `1px solid ${C.border}`,
+  borderRadius: 16,
+  padding: "20px 22px",
+  textAlign: "left",
+};
+const cardNum = {
+  flex: "0 0 auto",
+  fontSize: "0.95rem",
+  fontWeight: 800,
+  color: C.accent,
+  fontVariantNumeric: "tabular-nums",
+  paddingTop: 2,
+};
+const cardTitle = {
+  fontWeight: 700,
+  fontSize: "1.12rem",
+  marginBottom: 6,
+  color: C.ink,
+};
+const cardBody = {
+  fontSize: "1rem",
+  lineHeight: 1.55,
+  color: C.dim,
+};
 const btnPrimary = {
   display: "inline-block",
-  padding: "15px 30px",
+  padding: "16px 32px",
   fontSize: "1.05rem",
   fontWeight: 700,
-  color: "#0b1020",
-  background: "#7dd3fc",
+  color: C.buttonInk,
+  background: C.accentStrong,
   border: "none",
   borderRadius: 12,
   cursor: "pointer",
@@ -489,16 +459,16 @@ const label = {
   fontSize: "0.92rem",
   fontWeight: 600,
   marginBottom: 8,
-  color: "#e6e9f2",
+  color: C.ink,
 };
 const input = {
   width: "100%",
   padding: "13px 14px",
   fontSize: "1rem",
   borderRadius: 10,
-  border: "1px solid #2a3358",
-  background: "#0b1020",
-  color: "#e6e9f2",
+  border: `1px solid ${C.border}`,
+  background: C.bg,
+  color: C.ink,
   boxSizing: "border-box",
 };
 const textarea = {
@@ -507,29 +477,10 @@ const textarea = {
   fontSize: "0.98rem",
   lineHeight: 1.5,
   borderRadius: 10,
-  border: "1px solid #2a3358",
-  background: "#0b1020",
-  color: "#e6e9f2",
+  border: `1px solid ${C.border}`,
+  background: C.bg,
+  color: C.ink,
   boxSizing: "border-box",
   fontFamily: "inherit",
   resize: "vertical",
-};
-const baCol = {
-  background: "#0b1020",
-  border: "1px solid #2a3358",
-  borderRadius: 10,
-  padding: "10px 14px",
-};
-const baLabel = {
-  fontSize: "0.72rem",
-  fontWeight: 700,
-  letterSpacing: "0.04em",
-  textTransform: "uppercase",
-  color: "rgba(230,233,242,0.55)",
-  marginBottom: 4,
-};
-const baText = {
-  fontSize: "0.95rem",
-  lineHeight: 1.5,
-  color: "#e6e9f2",
 };

@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Tailored resumes, done for you — at scale",
+  title: "Get your resume tailored to the exact company you're applying to",
   description:
-    "We do the homework, tailor every version to fit, and apply across far more of the market than you could by hand. More shots on goal, done for you.",
+    "Tell us the role and the company. We research their job post, recent news, and engineering/product blog, then rewrite your resume to fit what that team actually cares about — emailed back to you, fast.",
 };
 
 export default function RootLayout({ children }) {
@@ -12,8 +12,8 @@ export default function RootLayout({ children }) {
           margin: 0,
           fontFamily:
             "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
-          background: "#0d0d0f",
-          color: "#ededed",
+          background: "#0b1020",
+          color: "#e6e9f2",
         }}
       >
         {children}
