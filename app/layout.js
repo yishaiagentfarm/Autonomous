@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "More shots on goal, done for you — Tailored applications at scale",
+  title: "Autonomous — We apply to jobs for you",
   description:
-    "We research, tailor, and apply on your behalf — far more widely than you could by hand. You bring the resume. We handle the rest.",
+    "Tell us your target role and the companies you want to work at. We research each one, tailor your resume to fit, and send the applications — far more than you could by hand. You bring the resume; we handle the rest.",
 };
 
 export default function RootLayout({ children }) {
