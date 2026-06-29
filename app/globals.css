@@ -181,3 +181,36 @@ a { color: inherit; text-decoration: none; }
   .claim-grid { grid-template-columns: 1fr 1.1fr; }
   .claim-h2 { font-size: 48px; }
 }
+
+/* ---------------- content / legal pages ---------------- */
+.page-head { padding: 80px 0 32px; border-bottom: 1px solid var(--border); }
+.page-head h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.025em; margin: 0 0 12px; }
+.page-head .lede { font-size: 18px; color: var(--muted-foreground); max-width: 640px; margin: 0; line-height: 1.6; }
+.page-head .updated { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted-foreground); margin: 16px 0 0; }
+.legal { padding: 48px 0 96px; }
+.legal-inner { max-width: 760px; }
+.legal h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 40px 0 12px; }
+.legal h2:first-child { margin-top: 0; }
+.legal p, .legal li { font-size: 16px; color: var(--foreground); line-height: 1.7; }
+.legal p { margin: 0 0 16px; }
+.legal ul { margin: 0 0 16px; padding-left: 22px; }
+.legal li { margin-bottom: 8px; }
+.legal a { color: var(--accent); }
+
+/* pricing tiers */
+.tiers { padding: 64px 0 96px; }
+.tier-grid { display: grid; grid-template-columns: 1fr; gap: 24px; max-width: 880px; }
+.tier { border: 1px solid var(--border); background: var(--card); padding: 32px; display: flex; flex-direction: column; }
+.tier.feature { border-color: var(--accent); }
+.tier-name { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); font-weight: 700; margin: 0 0 16px; }
+.tier-price { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.tier-price .amt { font-size: 44px; font-weight: 800; }
+.tier-price .per { font-family: var(--font-mono); font-size: 12px; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.12em; }
+.tier-desc { color: var(--muted-foreground); line-height: 1.6; margin: 0 0 20px; }
+.tier ul { list-style: none; margin: 0 0 24px; padding: 0; }
+.tier li { font-size: 15px; line-height: 1.5; padding-left: 22px; position: relative; margin-bottom: 10px; color: var(--foreground); }
+.tier li::before { content: "\2192"; position: absolute; left: 0; color: var(--accent); }
+.tier .btn-cta { align-self: flex-start; }
+@media (min-width: 860px) {
+  .tier-grid { grid-template-columns: 1fr 1fr; }
+}
