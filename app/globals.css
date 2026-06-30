@@ -268,3 +268,51 @@ a { color: inherit; text-decoration: none; }
   .seq-grid { grid-template-columns: 1fr auto 1fr; }
   .seq-arrow { transform: none; }
 }
+
+/* ===========================================================================
+   HOMEPAGE rewrite (task 13d8935c) — value-first, scannable, with a
+   "double-line" (outlined display) treatment on key headers.
+=========================================================================== */
+
+/* double-line display: outlined glyphs read as twin contour lines */
+.display-stroke {
+  color: transparent;
+  -webkit-text-stroke: 1.6px var(--foreground);
+  text-stroke: 1.6px var(--foreground);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-style: normal;
+}
+@supports not ((-webkit-text-stroke: 1px #000) or (text-stroke: 1px #000)) {
+  /* graceful fallback: still legible if stroke unsupported */
+  .display-stroke { color: var(--foreground); }
+}
+@media (min-width: 768px) {
+  .display-stroke { -webkit-text-stroke-width: 2px; text-stroke: 2px var(--foreground); }
+}
+
+/* hero CTA row */
+.hero-cta-row { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.hero-cta-note { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted-foreground); }
+
+/* outcome strip — the shift in 3 lines */
+.outcome { padding: 56px 0; border-top: 1px solid var(--border); background: var(--fo-02); }
+.outcome-grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
+.outcome-item { display: flex; flex-direction: column; gap: 10px; }
+.outcome-big { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; line-height: 1.05; }
+.outcome-cap { font-size: 15px; color: var(--muted-foreground); line-height: 1.55; margin: 0; }
+
+/* how it works — steps with outlined display numerals */
+.steps { padding: 96px 0; border-top: 1px solid var(--border); }
+.step-grid { display: grid; grid-template-columns: 1fr; gap: 48px; }
+.step { display: flex; flex-direction: column; }
+.step-n { font-size: 64px; line-height: 1; margin-bottom: 20px; display: inline-block; }
+.step-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 12px; }
+.step-body { color: var(--muted-foreground); line-height: 1.6; margin: 0; max-width: 36ch; }
+
+@media (min-width: 768px) {
+  .outcome-grid { grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .outcome-big { font-size: 30px; }
+  .step-grid { grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .step-n { font-size: 80px; }
+}
