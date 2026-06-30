@@ -1,70 +1,142 @@
 import Link from "next/link";
 import SiteNav from "./components/SiteNav";
 import SiteFooter from "./components/SiteFooter";
+import FeatureTabs from "./components/FeatureTabs";
 
 export default function Home() {
   return (
     <>
       <SiteNav />
 
-      {/* hero — value-first outcome */}
-      <section className="hero">
-        <div className="wrap hero-col reveal">
-          <div className="eyebrow">
-            <span className="sq2" />
-            <span className="lbl">AI grant-application drafting</span>
-          </div>
-          <h1 className="h1">
-            A <span className="display-stroke">submission-ready</span> grant
-            package — in <span className="serif">an afternoon,</span> not a week.
-          </h1>
-          <p className="hero-sub">
-            GrantHunter turns a funding opportunity into a{" "}
-            <span className="strong">compliance matrix</span> mapping every
-            requirement to your response and a first-draft{" "}
-            <span className="strong">narrative</span> written to the
-            solicitation. You review and submit — instead of starting from a
-            blank page.
-          </p>
-          <div className="hero-cta-row">
-            <Link href="/pricing" className="btn-cta">
-              Claim a beta seat — $199 refundable →
-            </Link>
-            <span className="hero-cta-note">
+      {/* hero — two column: value-first copy + animated product mockup */}
+      <section className="hero2">
+        <div className="wrap hero2-grid">
+          <div className="hero2-copy reveal">
+            <div className="eyebrow">
+              <span className="sq2" />
+              <span className="lbl">AI grant-application drafting</span>
+            </div>
+            <h1 className="h1">
+              A <span className="display-stroke">submission-ready</span> grant
+              package — in <span className="serif">an afternoon,</span> not a
+              week.
+            </h1>
+            <p className="hero-sub">
+              GrantHunter turns a funding opportunity into a{" "}
+              <span className="strong">compliance matrix</span> mapping every
+              requirement to your response and a first-draft{" "}
+              <span className="strong">narrative</span> written to the
+              solicitation. You review and submit — instead of starting from a
+              blank page.
+            </p>
+            <div className="hero-cta-row2">
+              <Link href="/pricing" className="btn-cta">
+                Claim a beta seat — $199 refundable →
+              </Link>
+              <a href="#how" className="btn-ghost">
+                See how it works ↓
+              </a>
+            </div>
+            <p className="hero-cta-note">
               Fully refundable · credited toward your subscription
-            </span>
+            </p>
+          </div>
+
+          {/* animated product mockup — the "skeleton + animation" */}
+          <div className="hero2-mock reveal d2">
+            <div className="mock">
+              <div className="mock-head">
+                <div className="mock-head-left">
+                  <span className="mock-chip">GH</span>
+                  <div>
+                    <p className="mock-title">Compliance run</p>
+                    <p className="mock-sub">SBIR Phase I · DoE</p>
+                  </div>
+                </div>
+                <span className="mock-pill live">
+                  <span className="mock-dot" /> Drafting
+                </span>
+              </div>
+              <div className="mock-rows">
+                <div className="mock-row active">
+                  <span className="mock-tick" />
+                  <div className="mock-row-body">
+                    <p className="mock-tag">§3.1 Eligibility — mapped</p>
+                    <span className="mock-bar pulse" style={{ width: "64%" }} />
+                  </div>
+                </div>
+                <div className="mock-row">
+                  <span className="mock-tick" />
+                  <div className="mock-row-body">
+                    <p className="mock-tag">§3.2 Technical approach</p>
+                    <span
+                      className="mock-bar pulse"
+                      style={{ width: "82%", animationDelay: "160ms" }}
+                    />
+                  </div>
+                </div>
+                <div className="mock-row">
+                  <span className="mock-tick ghost" />
+                  <div className="mock-row-body">
+                    <p className="mock-tag muted">§3.4 Past performance</p>
+                    <span
+                      className="mock-bar pulse"
+                      style={{ width: "48%", animationDelay: "320ms" }}
+                    />
+                  </div>
+                </div>
+                <div className="mock-row">
+                  <span className="mock-tick ghost" />
+                  <div className="mock-row-body">
+                    <p className="mock-tag muted">§4.1 Budget narrative</p>
+                    <span
+                      className="mock-bar pulse"
+                      style={{ width: "70%", animationDelay: "480ms" }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="mock-foot">
+                <span className="mock-foot-k">Requirements</span>
+                <span className="mock-foot-v">12 / 12 captured</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* outcome strip — the shift, in 3 numbers */}
-      <section className="outcome">
-        <div className="wrap outcome-grid">
-          <div className="outcome-item">
-            <p className="outcome-big">Days&nbsp;→&nbsp;hours</p>
-            <p className="outcome-cap">
-              Compliance and first drafts that took a week, done in an afternoon.
+      {/* trust strip — built on live federal sources */}
+      <section className="trust">
+        <div className="wrap">
+          <p className="trust-cap">Built on live federal opportunity data</p>
+          <div className="trust-row">
+            <span className="trust-mark">GRANTS.GOV</span>
+            <span className="trust-mark">SBIR</span>
+            <span className="trust-mark">STTR</span>
+            <span className="trust-mark">SAM.GOV</span>
+            <span className="trust-mark">FEDERAL&nbsp;BAAs</span>
+          </div>
+        </div>
+      </section>
+
+      {/* tabbed features — one workspace, every requirement */}
+      <section className="feat">
+        <div className="wrap">
+          <div className="feat-head">
+            <h2 className="feat-h2">
+              One workspace. <span className="serif">Every requirement.</span>
+            </h2>
+            <p className="feat-sub">
+              GrantHunter does the slow first pass for you — and hands you a
+              draft you can edit, approve, and submit.
             </p>
           </div>
-          <div className="outcome-item">
-            <p className="outcome-big">Every&nbsp;“shall”</p>
-            <p className="outcome-cap">
-              Each requirement in the solicitation mapped to your response —
-              nothing missed.
-            </p>
-          </div>
-          <div className="outcome-item">
-            <p className="outcome-big">You&nbsp;approve</p>
-            <p className="outcome-cap">
-              A drafting assistant — a human expert reviews and signs off on
-              every submission.
-            </p>
-          </div>
+          <FeatureTabs />
         </div>
       </section>
 
       {/* how it works — three steps, display numerals */}
-      <section className="steps">
+      <section className="steps" id="how">
         <div className="wrap">
           <p className="sec-label accent">How it works</p>
           <div className="step-grid">
@@ -99,73 +171,50 @@ export default function Home() {
         </div>
       </section>
 
-      {/* what you get — concrete deliverables */}
-      <section className="whatyouget">
+      {/* dark proof section — validated on real opportunities */}
+      <section className="proof">
         <div className="wrap">
-          <p className="sec-label accent">What you get</p>
-          <div className="perk-grid">
-            <div className="perk">
-              <div className="perk-head">
-                <span className="perk-n">A</span>
-                <h3 className="perk-title">Compliance matrix</h3>
-              </div>
-              <p className="perk-body">
-                Every &quot;shall&quot; and &quot;must&quot; extracted into a
-                requirement-by-requirement matrix, so nothing eligible gets
-                missed and reviewers can see compliance at a glance.
+          <div className="proof-inner">
+            <div>
+              <p className="proof-eyebrow">Validated on real solicitations</p>
+              <h2 className="proof-h2">
+                Six live SBIR / STTR opportunities,{" "}
+                <span className="serif-em">drafted end to end.</span>
+              </h2>
+              <p className="proof-p">
+                In build validation, GrantHunter produced compliance matrices
+                and draft narratives against six live federal SBIR / STTR
+                opportunities pulled from Grants.gov — the same kind of
+                solicitation beta users bring. It is a drafting assistant: a
+                human expert reviews, edits, and approves every application
+                before submission.
               </p>
+              <Link href="/pricing" className="btn-cta light">
+                Claim a beta seat — $199 →
+              </Link>
             </div>
-            <div className="perk">
-              <div className="perk-head">
-                <span className="perk-n">B</span>
-                <h3 className="perk-title">Narrative first draft</h3>
+            <div className="proof-card">
+              <div className="proof-stat">
+                <span className="proof-num">6</span>
+                <span className="proof-num-cap">opportunities drafted</span>
               </div>
-              <p className="perk-body">
-                A structured narrative written to the solicitation&apos;s
-                sections and evaluation criteria, grounded in the details you
-                provide about your organization and project.
-              </p>
-            </div>
-            <div className="perk">
-              <div className="perk-head">
-                <span className="perk-n">C</span>
-                <h3 className="perk-title">Opportunity fit</h3>
+              <div className="proof-meter">
+                <div className="proof-meter-row">
+                  <span className="proof-meter-k">Requirements captured</span>
+                  <span className="proof-meter-v">100%</span>
+                </div>
+                <div className="proof-track">
+                  <span className="proof-fill" style={{ width: "100%" }} />
+                </div>
+                <div className="proof-meter-row">
+                  <span className="proof-meter-k">First draft per package</span>
+                  <span className="proof-meter-v">~1 afternoon</span>
+                </div>
+                <div className="proof-track">
+                  <span className="proof-fill" style={{ width: "82%" }} />
+                </div>
               </div>
-              <p className="perk-body">
-                Scope, eligibility and deadlines summarized up front, so you
-                pursue the opportunities worth your time and skip the ones that
-                aren&apos;t.
-              </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* who it's for */}
-      <section className="scale">
-        <div className="wrap scale-grid">
-          <div>
-            <h2 className="scale-h2">
-              Built for the people who <span className="serif">write the
-              grants.</span>
-            </h2>
-            <p className="scale-p">
-              Freelance grant writers, consulting agencies, and GovCon small
-              businesses spend days per application on compliance and first
-              drafts. GrantHunter compresses that to hours — you keep full
-              editorial control and accountability for what gets submitted.
-            </p>
-          </div>
-          <div>
-            <p className="sec-label">Proven on real opportunities</p>
-            <p className="scale-p">
-              In our build validation, GrantHunter produced compliance matrices
-              and draft narratives against six live federal SBIR / STTR
-              opportunities pulled from Grants.gov — the same kind of
-              solicitation beta users bring. It is a drafting assistant: a human
-              expert reviews, edits, and approves every application before
-              submission.
-            </p>
           </div>
         </div>
       </section>
